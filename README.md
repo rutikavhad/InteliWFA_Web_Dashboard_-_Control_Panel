@@ -434,8 +434,6 @@ POST /api/firewall/ports
 <img src="screenshots/Control_page.png" alt="My Image" width="300"/>
 <img src="screenshots/block.png" alt="My Image" width="300"/>
 
-```
-
 ---
 
 # Development Goals
