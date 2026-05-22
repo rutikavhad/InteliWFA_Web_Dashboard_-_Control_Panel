@@ -430,13 +430,10 @@ POST /api/firewall/ports
 # Screenshots
 
 ## Analytics Dashboard
+<img src="screenshots/dashboard.png" alt="My Image" width="300"/>
+<img src="screenshots/Control_page.png" alt="My Image" width="300"/>
+<img src="screenshots/block.png" alt="My Image" width="300"/>
 
-```text
-Add screenshots here:
-
-screenshots/dashboard.png
-screenshots/Control_page.png
-screenshots/block.png
 ```
 
 ---
