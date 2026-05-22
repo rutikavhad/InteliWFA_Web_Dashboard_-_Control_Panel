@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InteliWFA - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .total-attacks {
+            text-align: center;
+            font-size: 48px;
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+        .refresh-badge {
+            font-size: 12px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 5px;
+        }
+        canvas {
+            max-height: 300px;
+        }
+        .traffic-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .traffic-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .traffic-list li:hover {
+            background: #f9f9f9;
+        }
+        .attack-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .normal-badge {
+            background: #2ecc71;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .ip-address {
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .timestamp {
+            font-size: 11px;
+            color: #999;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ InteliWFA Dashboard</h1>
+        <div class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/control">Control Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="card">
+                <h3>Total Attacks Blocked</h3>
+                <div class="total-attacks" id="totalAttacks">0</div>
+                <div class="refresh-badge">Auto-refresh every 5 seconds</div>
+            </div>
+            
+            <div class="card">
+                <h3>Attack Type Distribution</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h3>Attacks Per Minute (Last 30 min)</h3>
+                <canvas id="attacksPerMinChart"></canvas>
+            </div>
+            
+            <div class="card">
+                <h3>Attacks Over Time (Last 24 hours)</h3>
+                <canvas id="attacksOverTimeChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>🔄 Live Traffic Feed (Newest First)</h3>
+            <ul class="traffic-list" id="liveTraffic"></ul>
+        </div>
+    </div>
+    <div class="footer">
+        <p>InteliWFA - Real-time Web Application Firewall</p>
+    </div>
+    
+    <script>
+        let pieChart, attacksPerMinChart, attacksOverTimeChart;
+        
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                // Update total attacks
+                document.getElementById('totalAttacks').innerText = data.total_attacks;
+                
+                // Update pie chart
+                const attackLabels = Object.keys(data.attack_types);
+                const attackCounts = Object.values(data.attack_types);
+                
+                if (pieChart) {
+                    pieChart.data.labels = attackLabels;
+                    pieChart.data.datasets[0].data = attackCounts;
+                    pieChart.update();
+                } else {
+                    const ctx = document.getElementById('pieChart').getContext('2d');
+                    pieChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: attackLabels,
+                            datasets: [{
+                                data: attackCounts,
+                                backgroundColor: ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e']
+                            }]
+                        }
+                    });
+                }
+                
+                // Update attacks per minute chart
+                const rpmData = data.attacks_per_minute || [];
+                if (attacksPerMinChart) {
+                    attacksPerMinChart.data.labels = rpmData.map(d => d.time);
+                    attacksPerMinChart.data.datasets[0].data = rpmData.map(d => d.count);
+                    attacksPerMinChart.update();
+                } else {
+                    const ctx = document.getElementById('attacksPerMinChart').getContext('2d');
+                    attacksPerMinChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: rpmData.map(d => d.time),
+                            datasets: [{
+                                label: 'Attacks per minute',
+                                data: rpmData.map(d => d.count),
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Attacks'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Update attacks over time chart (last 24 hours)
+                const overTimeData = data.attacks_over_time || [];
+                if (attacksOverTimeChart) {
+                    attacksOverTimeChart.data.labels = overTimeData.map(d => d.hour);
+                    attacksOverTimeChart.data.datasets[0].data = overTimeData.map(d => d.count);
+                    attacksOverTimeChart.update();
+                } else {
+                    const ctx = document.getElementById('attacksOverTimeChart').getContext('2d');
+                    attacksOverTimeChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: overTimeData.map(d => d.hour),
+                            datasets: [{
+                                label: 'Attacks per hour',
+                                data: overTimeData.map(d => d.count),
+                                backgroundColor: '#3498db',
+                                borderColor: '#2980b9',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Attacks'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Hour (Last 24 hours)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Update live traffic feed
+                const trafficFeed = data.live_traffic || [];
+                const trafficList = document.getElementById('liveTraffic');
+                trafficList.innerHTML = trafficFeed.map(item => `
+                    <li>
+                        <div style="flex: 1;">
+                            <div>
+                                <span class="ip-address">🔗 ${item.client_ip}</span>
+                                <span style="margin-left: 10px; font-size: 12px;">${item.method} ${item.path}</span>
+                            </div>
+                            <div class="timestamp">${item.timestamp}</div>
+                        </div>
+                        <div>
+                            ${item.attack_type !== 'NORMAL' ? 
+                                `<span class="attack-badge">⚠️ ${item.attack_type}</span>` : 
+                                `<span class="normal-badge">✅ NORMAL</span>`
+                            }
+                        </div>
+                    </li>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+        
+        // Fetch data immediately and every 3 seconds
+        fetchData();
+        setInterval(fetchData, 3000);
+    </script>
+</body>
+</html>

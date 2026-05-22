@@ -1,0 +1,5 @@
+cat > requirements.txt << 'EOF'
+Flask==2.3.0
+mitmproxy==9.0.1
+psycopg2-binary==2.9.9
+EOF
