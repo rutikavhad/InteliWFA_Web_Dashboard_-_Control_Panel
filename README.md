@@ -516,6 +516,3 @@ If you like SentinelFlow, give it a ⭐ on GitHub!
 Made with ❤️ using Python & Flask
 
 </div>
-
-
-# InteliWFA_Web_Dashboard_-_Control_Panel
