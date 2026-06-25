@@ -15,7 +15,9 @@
 
 ## 📹 Demo Video
 
-[![SentinelFlow Demo](https://img.youtube.com/vi/yMJc3awMF4E/0.jpg)](https://youtu.be/yMJc3awMF4E)
+[![SentinelFlow Demo](https://img.youtube.com/vi/itc2kkwv-dE/0.jpg)](https://youtu.be/itc2kkwv-dE)
+
+
 
 Click the image to watch the demo on YouTube
 
