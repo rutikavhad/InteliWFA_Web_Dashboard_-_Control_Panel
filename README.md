@@ -17,6 +17,8 @@
 
 [![SentinelFlow Demo](https://img.youtube.com/vi/itc2kkwv-dE/maxresdefault.jpg)](https://youtu.be/itc2kkwv-dE)
 
+[SentinelFlow Demo](https://youtu.be/itc2kkwv-dE)
+
 
 
 Click the image to watch the demo on YouTube
